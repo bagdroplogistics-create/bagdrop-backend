@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # MongoDB connection
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
+MONGO_URL = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URL)
 db = client[os.getenv("DB_NAME", "bagdrop_db")]
 bookings_collection = db["bookings"]
