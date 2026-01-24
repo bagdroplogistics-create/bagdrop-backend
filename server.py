@@ -26,7 +26,7 @@ app.add_middleware(
 MONGO_URL = os.getenv("MONGO_URL")
 
 if not MONGO_URL:
-    raise RuntimeError("MONGO_URL environment variable not set")
+    print("❌ MONGO_URL not set")
 
 client = MongoClient(
     MONGO_URL,
