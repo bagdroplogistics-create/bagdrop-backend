@@ -23,17 +23,20 @@ app.add_middleware(
 )
 
 # ------------------- MONGO -------------------
-MONGO_URL = os.environ.get("MONGO_URL")
+MONGO_URL = os.getenv("MONGO_URL")
 
 if not MONGO_URL:
-    raise RuntimeError("❌ MONGO_URL environment variable not set")
+    raise RuntimeError("MONGO_URL environment variable not set")
 
-client = MongoClient(MONGO_URL)
-db = client.get_default_database()
+client = MongoClient(
+    MONGO_URL,
+    serverSelectionTimeoutMS=5000
+)
 
+db = client.get_database()
+bookings_collection = db["bookings"]
 users_collection = db["users"]
 otp_collection = db["otp"]
-bookings_collection = db["bookings"]
 
 try:
     client.admin.command("ping")
