@@ -144,103 +144,103 @@ def send_otp_email(email: str, otp: str) -> bool:
         
        
 # Real Gmail SMTP email function
-def send_booking_email(booking_data):
-    try:
-        gmail_user = os.getenv("GMAIL_USER")
-        gmail_password = os.getenv("GMAIL_PASSWORD")
+# def send_booking_email(booking_data):
+#     try:
+#         gmail_user = os.getenv("GMAIL_USER")
+#         gmail_password = os.getenv("GMAIL_PASSWORD")
         
-        if not gmail_user or not gmail_password:
-            print("⚠️ Gmail credentials not configured. Email not sent.")
-            return
+#         if not gmail_user or not gmail_password:
+#             print("⚠️ Gmail credentials not configured. Email not sent.")
+#             return
         
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"Bagdrop Booking Received - {booking_data['booking_id']}"
-        msg['From'] = gmail_user
-        msg['To'] = booking_data['email']
-        msg['Cc'] = "info@bagdrop.co"
+#         # Create message
+#         msg = MIMEMultipart('alternative')
+#         msg['Subject'] = f"Bagdrop Booking Received - {booking_data['booking_id']}"
+#         msg['From'] = gmail_user
+#         msg['To'] = booking_data['email']
+#         msg['Cc'] = "info@bagdrop.co"
         
-        # Create HTML email body
-        html_body = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">BAGDROP</h1>
-                    <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
-                </div>
+#         # Create HTML email body
+#         html_body = f"""
+#         <html>
+#         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+#             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+#                 <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+#                     <h1 style="color: white; margin: 0;">BAGDROP</h1>
+#                     <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
+#                 </div>
                 
-                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-                    <h2 style="color: #FF6B35;">Booking Received! ✓</h2>
+#                 <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+#                     <h2 style="color: #FF6B35;">Booking Received! ✓</h2>
                     
-                    <p>Dear {booking_data['first_name']} {booking_data['last_name']},</p>
+#                     <p>Dear {booking_data['first_name']} {booking_data['last_name']},</p>
                     
-                    <p>Thank you for your inquiry! Bagdrop has received your request and our team will confirm your baggage delivery service at the earliest, or within 24 hours of receiving your message.</p>
+#                     <p>Thank you for your inquiry! Bagdrop has received your request and our team will confirm your baggage delivery service at the earliest, or within 24 hours of receiving your message.</p>
                     
-                    <div style="background-color: white; padding: 20px; border-left: 4px solid #FF6B35; margin: 20px 0;">
-                        <h3 style="margin-top: 0; color: #FF6B35;">Booking Reference</h3>
-                        <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">{booking_data['booking_id']}</p>
-                    </div>
+#                     <div style="background-color: white; padding: 20px; border-left: 4px solid #FF6B35; margin: 20px 0;">
+#                         <h3 style="margin-top: 0; color: #FF6B35;">Booking Reference</h3>
+#                         <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">{booking_data['booking_id']}</p>
+#                     </div>
                     
-                    <h3 style="color: #FF6B35;">Delivery Details</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 10px; background-color: white;"><strong>Delivery Type:</strong></td>
-                            <td style="padding: 10px; background-color: white;">{booking_data['delivery_type'].title()} Delivery</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Location:</strong></td>
-                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_location']}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; background-color: white;"><strong>Drop Location:</strong></td>
-                            <td style="padding: 10px; background-color: white;">{booking_data['drop_location']}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Date:</strong></td>
-                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_date']}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; background-color: white;"><strong>Number of {booking_data['delivery_type'].title()}s:</strong></td>
-                            <td style="padding: 10px; background-color: white;">{booking_data['num_bags']}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Phone Number:</strong></td>
-                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['phone']}</td>
-                        </tr>
-                    </table>
+#                     <h3 style="color: #FF6B35;">Delivery Details</h3>
+#                     <table style="width: 100%; border-collapse: collapse;">
+#                         <tr>
+#                             <td style="padding: 10px; background-color: white;"><strong>Delivery Type:</strong></td>
+#                             <td style="padding: 10px; background-color: white;">{booking_data['delivery_type'].title()} Delivery</td>
+#                         </tr>
+#                         <tr>
+#                             <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Location:</strong></td>
+#                             <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_location']}</td>
+#                         </tr>
+#                         <tr>
+#                             <td style="padding: 10px; background-color: white;"><strong>Drop Location:</strong></td>
+#                             <td style="padding: 10px; background-color: white;">{booking_data['drop_location']}</td>
+#                         </tr>
+#                         <tr>
+#                             <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Date:</strong></td>
+#                             <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_date']}</td>
+#                         </tr>
+#                         <tr>
+#                             <td style="padding: 10px; background-color: white;"><strong>Number of {booking_data['delivery_type'].title()}s:</strong></td>
+#                             <td style="padding: 10px; background-color: white;">{booking_data['num_bags']}</td>
+#                         </tr>
+#                         <tr>
+#                             <td style="padding: 10px; background-color: #f5f5f5;"><strong>Phone Number:</strong></td>
+#                             <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['phone']}</td>
+#                         </tr>
+#                     </table>
                     
-                    <div style="background-color: #FFF5F2; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                        <p style="margin: 0;"><strong>Need Assistance?</strong></p>
-                        <p style="margin: 5px 0;">📞 Call us at: <strong>6357115711</strong> | <strong>6357225722</strong> | <strong>6357335733</strong></p>
-                        <p style="margin: 5px 0;">📧 Email: <strong>info@bagdrop.co</strong></p>
-                    </div>
+#                     <div style="background-color: #FFF5F2; padding: 15px; border-radius: 8px; margin-top: 20px;">
+#                         <p style="margin: 0;"><strong>Need Assistance?</strong></p>
+#                         <p style="margin: 5px 0;">📞 Call us at: <strong>6357115711</strong> | <strong>6357225722</strong> | <strong>6357335733</strong></p>
+#                         <p style="margin: 5px 0;">📧 Email: <strong>info@bagdrop.co</strong></p>
+#                     </div>
                     
-                    <p style="margin-top: 30px;">Thank you for choosing Bagdrop!</p>
-                    <p style="color: #666; font-size: 14px;">Bagdrop Logistics Solutions - Premium Baggage Delivery Service</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
+#                     <p style="margin-top: 30px;">Thank you for choosing Bagdrop!</p>
+#                     <p style="color: #666; font-size: 14px;">Bagdrop Logistics Solutions - Premium Baggage Delivery Service</p>
+#                 </div>
+#             </div>
+#         </body>
+#         </html>
+#         """
         
-        # Attach HTML body
-        html_part = MIMEText(html_body, 'html')
-        msg.attach(html_part)
+#         # Attach HTML body
+#         html_part = MIMEText(html_body, 'html')
+#         msg.attach(html_part)
         
-        # Send email via Gmail SMTP
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(gmail_user, gmail_password)
-            recipients = [booking_data['email'], 'info@bagdrop.co']
-            server.sendmail(gmail_user, recipients, msg.as_string())
+#         # Send email via Gmail SMTP
+#         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+#             server.login(gmail_user, gmail_password)
+#             recipients = [booking_data['email'], 'info@bagdrop.co']
+#             server.sendmail(gmail_user, recipients, msg.as_string())
         
-        print(f"✅ Email sent successfully to {booking_data['email']} and info@bagdrop.co")
-        print(f"   Booking ID: {booking_data['booking_id']}")
+#         print(f"✅ Email sent successfully to {booking_data['email']} and info@bagdrop.co")
+#         print(f"   Booking ID: {booking_data['booking_id']}")
         
-    except Exception as e:
-        print(f"❌ Error sending email: {str(e)}")
-        # Don't fail the booking if email fails
-        pass
+#     except Exception as e:
+#         print(f"❌ Error sending email: {str(e)}")
+#         # Don't fail the booking if email fails
+#         pass
 
 @app.get("/api/health")
 def health_check():
