@@ -128,6 +128,8 @@ def send_otp_email(email: str, otp: str) -> bool:
         }
 
         response = requests.post("https://api.resend.com/emails", json=payload, headers=headers)
+        print("Resend API status code:", response.status_code)
+print("Resend API response:", response.text)  # <- This will show the exact error
 
         if response.status_code in [200, 202]:
             print(f"✅ OTP sent successfully to {email}")
