@@ -241,20 +241,21 @@ def create_booking(booking: BookingCreate):
 
     bookings_collection.insert_one(booking_data)
 
-    send_booking_email(
+    send_email(
         to_email=booking.email,
         subject=f"Bagdrop Booking {booking_id}",
         html=f"""
         <h2>Booking Confirmed</h2>
         <p>Your booking ID:</p>
         <h1>{booking_id}</h1>
+        <p>Thank you for choosing Bagdrop.</p>
         """
     )
 
     return {"success": True, "booking_id": booking_id}
 
     # Send email to admin
-send_booking_email(
+send_email(
     to_email="info@bagdrop.co",
     subject=f"New Booking Inquiry {booking_id}",
     html=f"""
