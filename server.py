@@ -109,7 +109,7 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
                 "Content-Type": "application/json",
             },
             json={
-                "from": "Bagdrop <no-reply@bagdrop.co>",
+                "from": "Bagdrop <onboarding@resend.dev>",
                 "to": to_email,
                 "subject": subject,
                 "html": html,
