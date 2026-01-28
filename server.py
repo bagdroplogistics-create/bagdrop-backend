@@ -84,6 +84,12 @@ class BookingCreate(BaseModel):
     email: EmailStr
     phone: str
 
+class BookingUpdate(BaseModel):
+    pickup_location: Optional[str] = None
+    drop_location: Optional[str] = None
+    pickup_date: Optional[str] = None
+    num_bags: Optional[int] = None
+
 class TrackBooking(BaseModel):
     booking_id: str
     email: EmailStr
@@ -186,6 +192,9 @@ def send_otp(request: SendOTPRequest):
 
     return {"success": True, "message": "OTP sent successfully"}
 
+
+
+
 @app.post("/api/auth/verify-otp")
 def verify_otp(request: VerifyOTPRequest):
     email = request.email.lower()
@@ -232,7 +241,7 @@ def create_booking(booking: BookingCreate):
 
     bookings_collection.insert_one(booking_data)
 
-    send_email(
+    send_booking_email(
         to_email=booking.email,
         subject=f"Bagdrop Booking {booking_id}",
         html=f"""
@@ -243,6 +252,70 @@ def create_booking(booking: BookingCreate):
     )
 
     return {"success": True, "booking_id": booking_id}
+
+    # Send email to admin
+send_booking_email(
+    to_email="info@bagdrop.co",
+    subject=f"New Booking Inquiry {booking_id}",
+    html=f"""
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">BAGDROP</h1>
+                    <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #FF6B35;">Booking Received! ✓</h2>
+                    
+                    <p>Dear {booking_data['first_name']} {booking_data['last_name']},</p>
+                    
+                    <p>Thank you for your inquiry! Bagdrop has received your request and our team will confirm your baggage delivery service at the earliest, or within 24 hours of receiving your message.</p>
+                    
+                    <div style="background-color: white; padding: 20px; border-left: 4px solid #FF6B35; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #FF6B35;">Booking Reference</h3>
+                        <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">{booking_data['booking_id']}</p>
+                    </div>
+                    
+                    <h3 style="color: #FF6B35;">Delivery Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px; background-color: white;"><strong>Delivery Type:</strong></td>
+                            <td style="padding: 10px; background-color: white;">{booking_data['delivery_type'].title()} Delivery</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Location:</strong></td>
+                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_location']}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; background-color: white;"><strong>Drop Location:</strong></td>
+                            <td style="padding: 10px; background-color: white;">{booking_data['drop_location']}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Pickup Date:</strong></td>
+                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['pickup_date']}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; background-color: white;"><strong>Number of {booking_data['delivery_type'].title()}s:</strong></td>
+                            <td style="padding: 10px; background-color: white;">{booking_data['num_bags']}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; background-color: #f5f5f5;"><strong>Phone Number:</strong></td>
+                            <td style="padding: 10px; background-color: #f5f5f5;">{booking_data['phone']}</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="background-color: #FFF5F2; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <p style="margin: 0;"><strong>Need Assistance?</strong></p>
+                        <p style="margin: 5px 0;">📞 Call us at: <strong>6357115711</strong> | <strong>6357225722</strong> | <strong>6357335733</strong></p>
+                        <p style="margin: 5px 0;">📧 Email: <strong>info@bagdrop.co</strong></p>
+                    </div>
+                    
+                    <p style="margin-top: 30px;">Thank you for choosing Bagdrop!</p>
+                    <p style="color: #666; font-size: 14px;">Bagdrop Logistics Solutions - Premium Baggage Delivery Service</p>
+                </div>
+            </div>
+    """
+)
 
 @app.post("/api/bookings/track")
 def track_booking(data: TrackBooking):
