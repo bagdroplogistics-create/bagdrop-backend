@@ -109,7 +109,7 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
                 "Content-Type": "application/json",
             },
             json={
-                "from": "Bagdrop <onboarding@resend.dev>",
+                "from": "Bagdrop <no-reply@bagdrop.co>",
                 "to": to_email,
                 "subject": subject,
                 "html": html,
@@ -154,11 +154,34 @@ def send_otp(request: SendOTPRequest):
     email_sent = send_email(
         to_email=email,
         subject="Bagdrop Verification Code",
-        html=f"""
-        <h2>Your Bagdrop OTP</h2>
-        <p>Your verification code is:</p>
-        <h1>{otp}</h1>
-        <p>This code expires in 10 minutes.</p>
+        html_body=f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">BAGDROP</h1>
+                    <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 40px; border-radius: 0 0 10px 10px; text-align: center;">
+                    <h2 style="color: #FF6B35;">Your Verification Code</h2>
+                    
+                    <p style="font-size: 16px;">Enter this code to log in to your Bagdrop account:</p>
+                    
+                    <div style="background-color: white; padding: 30px; border-radius: 10px; margin: 30px 0;">
+                        <p style="font-size: 48px; font-weight: bold; color: #FF6B35; margin: 0; letter-spacing: 10px;">{otp}</p>
+                    </div>
+                    
+                    <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+                    <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <p style="font-size: 14px; color: #666;">Need help? Contact us at 6357225722</p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
         """
     )
 
