@@ -154,10 +154,8 @@ def send_otp(request: SendOTPRequest):
     email_sent = send_email(
         to_email=email,
         subject="Bagdrop Verification Code",
-        html_body=f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        html_=f"""
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                     <h1 style="color: white; margin: 0;">BAGDROP</h1>
                     <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
@@ -180,8 +178,6 @@ def send_otp(request: SendOTPRequest):
                     </div>
                 </div>
             </div>
-        </body>
-        </html>
         """
     )
 
