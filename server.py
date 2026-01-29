@@ -294,16 +294,131 @@ def create_booking(booking: BookingCreate):
         "booking_id": booking_id
     }
 
+@app.get("/api/bookings")
+def get_bookings(email: str):
+    bookings = list(
+        bookings_collection.find(
+            {"email": email},
+            {"_id": 0}  # hide Mongo _id
+        ).sort("created_at", -1)
+    )
+
+    return {
+        "success": True,
+        "bookings": bookings
+    }
+        
 
 @app.post("/api/bookings/track")
-def track_booking(data: TrackBooking):
-    booking = bookings_collection.find_one({
-        "booking_id": data.booking_id,
-        "email": data.email,
-    })
+def track_booking(track_data: TrackBooking):
+    try:
+        # Find booking by ID and email
+        booking = bookings_collection.find_one({
+            "booking_id": track_data.booking_id,
+            "email": track_data.email
+        })
+        
+        if not booking:
+            raise HTTPException(
+                status_code=404,
+                detail="Booking not found. Please check your booking ID and email."
+            )
+        
+        # Convert ObjectId to string
+        booking["_id"] = str(booking["_id"])
+        
+        return {
+            "success": True,
+            "booking": booking
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error tracking booking: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+@app.put("/api/bookings/{booking_id}")
+def update_booking(booking_id: str, update_data: BookingUpdate, email: str):
+    try:
+        # Verify booking belongs to user
+        booking = bookings_collection.find_one({
+            "booking_id": booking_id,
+            "email": email
+        })
+        
+        if not booking:
+            raise HTTPException(
+                status_code=404,
+                detail="Booking not found or unauthorized"
+            )
+        
+        if booking["status"] == "cancelled":
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot modify cancelled booking"
+            )
+        
+        # Prepare update data
+        update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+        update_fields["updated_at"] = datetime.now().isoformat()
+        
+        # Update booking
+        bookings_collection.update_one(
+            {"booking_id": booking_id},
+            {"$set": update_fields}
+        )
+        
+        # Get updated booking
+        updated_booking = bookings_collection.find_one({"booking_id": booking_id})
+        updated_booking["_id"] = str(updated_booking["_id"])
+        
+        return {
+            "success": True,
+            "message": "Booking updated successfully",
+            "booking": updated_booking
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating booking: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    booking["_id"] = str(booking["_id"])
-    return {"success": True, "booking": booking}
+@app.delete("/api/bookings/{booking_id}")
+def cancel_booking(booking_id: str, email: str):
+    try:
+        # Verify booking belongs to user
+        booking = bookings_collection.find_one({
+            "booking_id": booking_id,
+            "email": email
+        })
+        
+        if not booking:
+            raise HTTPException(
+                status_code=404,
+                detail="Booking not found or unauthorized"
+            )
+        
+        if booking["status"] == "cancelled":
+            raise HTTPException(
+                status_code=400,
+                detail="Booking is already cancelled"
+            )
+        
+        # Update status to cancelled
+        bookings_collection.update_one(
+            {"booking_id": booking_id},
+            {"$set": {
+                "status": "cancelled",
+                "updated_at": datetime.now().isoformat()
+            }}
+        )
+        
+        return {
+            "success": True,
+            "message": "Booking cancelled successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error cancelling booking: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
