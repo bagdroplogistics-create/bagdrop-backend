@@ -281,6 +281,8 @@ def create_booking(booking: BookingCreate):
                 <p><strong>Date:</strong> {booking_data['pickup_date']}</p>
                 <p><strong>Bags:</strong> {booking_data['num_bags']}</p>
                 <p><strong>Phone:</strong> {booking_data['phone']}</p>
+                <p><strong>Email:</strong> {booking_data['email']}</p>
+                email: EmailStr
 
                 <p style="margin-top: 30px;">Thank you for choosing Bagdrop.</p>
             </div>
