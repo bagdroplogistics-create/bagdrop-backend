@@ -143,7 +143,10 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
 # Health
 # ======================
 
-        def send_sms(phone: str, otp: str) -> bool:
+# ======================
+# SMS
+# ======================
+def send_sms(phone: str, otp: str) -> bool:
     try:
         url = "https://www.fast2sms.com/dev/bulkV2"
 
@@ -177,19 +180,31 @@ def health():
 # ======================
 # Auth
 # ======================
+# ======================
+# Auth
+# ======================
 @app.post("/api/auth/send-otp")
-async def send_otp(request: OTPRequest):
+async def send_otp(request: SendOTPRequest):
     try:
         phone = request.phone
-        # generate OTP
-        import random
-        otp = str(random.randint(100000, 999999))
-        # TODO: send SMS here
-        print(f"OTP for {phone}: {otp}")
+
+        otp = generate_otp()
+
+        # save OTP in DB
+        otp_collection.insert_one({
+            "phone": phone,
+            "otp": otp,
+            "created_at": datetime.utcnow()
+        })
+
+        # send SMS
+        send_sms(phone, otp)
+
         return {
             "success": True,
             "message": "OTP sent successfully"
         }
+
     except Exception as e:
         return {
             "success": False,
@@ -200,8 +215,20 @@ async def verify_otp(request: VerifyOTPRequest):
     try:
         phone = request.phone
         otp = request.otp
-        # temporary success
+
+        record = otp_collection.find_one({
+            "phone": phone,
+            "otp": otp
+        })
+
+        if not record:
+            return {
+                "success": False,
+                "detail": "Invalid OTP"
+            }
+
         return {"success": True}
+
     except Exception as e:
         return {
             "success": False,
