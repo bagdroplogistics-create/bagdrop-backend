@@ -181,32 +181,27 @@ def health():
 async def send_otp(request: OTPRequest):
     try:
         phone = request.phone
-        otp = "123456"  # temporary test OTP
-
+        # generate OTP
+        import random
+        otp = str(random.randint(100000, 999999))
+        # TODO: send SMS here
+        print(f"OTP for {phone}: {otp}")
         return {
             "success": True,
             "message": "OTP sent successfully"
         }
-
     except Exception as e:
         return {
             "success": False,
             "detail": str(e)
         }
-
-
-
-
 @app.post("/api/auth/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
     try:
         phone = request.phone
         otp = request.otp
-
-        return {
-            "success": True
-        }
-
+        # temporary success
+        return {"success": True}
     except Exception as e:
         return {
             "success": False,
