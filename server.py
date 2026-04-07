@@ -28,6 +28,11 @@ app.add_middleware(
 MONGO_URL = os.getenv("MONGO_URL")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
+FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY")
+
+if not FAST2SMS_API_KEY:
+    raise Exception("❌ FAST2SMS_API_KEY not set")
+
 if not MONGO_URL:
     raise Exception("❌ MONGO_URL not set")
 
@@ -57,7 +62,7 @@ except Exception as e:
 try:
     bookings_collection.create_index("booking_id", unique=True)
     users_collection.create_index("email", unique=True)
-    otp_collection.create_index("email")
+    otp_collection.create_index("phone")
     otp_collection.create_index("created_at", expireAfterSeconds=600)
     print("✅ Indexes ensured")
 except Exception as e:
@@ -67,10 +72,10 @@ except Exception as e:
 # Models
 # ======================
 class SendOTPRequest(BaseModel):
-    email: EmailStr
+    phone: str
 
 class VerifyOTPRequest(BaseModel):
-    email: EmailStr
+     phone: str
     otp: str
 
 class BookingCreate(BaseModel):
@@ -134,6 +139,34 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
         print("❌ Email exception:", str(e))
         return False
 
+        # ======================
+# Health
+# ======================
+
+        def send_sms(phone: str, otp: str) -> bool:
+    try:
+        url = "https://www.fast2sms.com/dev/bulkV2"
+
+        querystring = {
+            "authorization": FAST2SMS_API_KEY,
+            "variables_values": otp,
+            "route": "otp",
+            "numbers": phone,
+        }
+
+        response = requests.get(url, params=querystring, timeout=10)
+
+        if response.status_code == 200:
+            print(f"✅ SMS sent to {phone}")
+            return True
+        else:
+            print("❌ Fast2SMS error:", response.text)
+            return False
+
+    except Exception as e:
+        print("❌ SMS exception:", str(e))
+        return False
+
 # ======================
 # Health
 # ======================
@@ -146,49 +179,21 @@ def health():
 # ======================
 @app.post("/api/auth/send-otp")
 def send_otp(request: SendOTPRequest):
-    email = request.email.lower()
+    phone = request.phone
     otp = generate_otp()
 
-    otp_collection.delete_many({"email": email})
+    otp_collection.delete_many({"phone": phone})
 
     otp_collection.insert_one({
-        "email": email,
+        "phone": phone,
         "otp": otp,
         "created_at": datetime.utcnow()
     })
 
-    email_sent = send_email(
-        to_email=email,
-        subject="Bagdrop Verification Code",
-        html=f"""
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #FF6B35; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">BAGDROP</h1>
-                    <p style="color: white; margin: 10px 0 0 0;">BAG. BOX. DELIVERED</p>
-                </div>
-                
-                <div style="background-color: #f9f9f9; padding: 40px; border-radius: 0 0 10px 10px; text-align: center;">
-                    <h2 style="color: #FF6B35;">Your Verification Code</h2>
-                    
-                    <p style="font-size: 16px;">Enter this code to log in to your Bagdrop account:</p>
-                    
-                    <div style="background-color: white; padding: 30px; border-radius: 10px; margin: 30px 0;">
-                        <p style="font-size: 48px; font-weight: bold; color: #FF6B35; margin: 0; letter-spacing: 10px;">{otp}</p>
-                    </div>
-                    
-                    <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
-                    <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-                    
-                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
-                        <p style="font-size: 14px; color: #666;">Need help? Contact us at 6357225722</p>
-                    </div>
-                </div>
-            </div>
-        """
-    )
+    sms_sent = send_sms(phone, otp)
 
-    if not email_sent:
-        raise HTTPException(status_code=500, detail="Failed to send OTP email")
+    if not sms_sent:
+        raise HTTPException(status_code=500, detail="Failed to send OTP SMS")
 
     return {"success": True, "message": "OTP sent successfully"}
 
@@ -197,27 +202,27 @@ def send_otp(request: SendOTPRequest):
 
 @app.post("/api/auth/verify-otp")
 def verify_otp(request: VerifyOTPRequest):
-    email = request.email.lower()
-    otp = request.otp
+   phone = request.phone
+otp = request.otp
 
-    otp_doc = otp_collection.find_one({"email": email, "otp": otp})
-    if not otp_doc:
+    otp_doc = otp_collection.find_one({"phone": phone, "otp": otp})
+   if not otp_doc:
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
     if datetime.utcnow() - otp_doc["created_at"] > timedelta(minutes=10):
         otp_collection.delete_one({"_id": otp_doc["_id"]})
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    user = users_collection.find_one({"email": email})
+    user = users_collection.find_one({"phone": phone})
     if not user:
         users_collection.insert_one({
-            "email": email,
+            "phone": phone,
             "created_at": datetime.utcnow(),
             "last_login": datetime.utcnow(),
         })
     else:
         users_collection.update_one(
-            {"email": email},
+            {"phone": phone},
             {"$set": {"last_login": datetime.utcnow()}}
         )
 
@@ -282,7 +287,6 @@ def create_booking(booking: BookingCreate):
                 <p><strong>Bags:</strong> {booking_data['num_bags']}</p>
                 <p><strong>Phone:</strong> {booking_data['phone']}</p>
                 <p><strong>Email:</strong> {booking_data['email']}</p>
-                
 
                 <p style="margin-top: 30px;">Thank you for choosing Bagdrop.</p>
             </div>
