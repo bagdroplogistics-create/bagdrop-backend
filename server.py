@@ -75,7 +75,7 @@ class SendOTPRequest(BaseModel):
     phone: str
 
 class VerifyOTPRequest(BaseModel):
-     phone: str
+    phone: str
     otp: str
 
 class BookingCreate(BaseModel):
