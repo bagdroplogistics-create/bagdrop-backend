@@ -150,26 +150,25 @@ def send_sms(phone: str, otp: str) -> bool:
     try:
         url = "https://www.fast2sms.com/dev/bulkV2"
 
-        payload = {
+        headers = {
             "authorization": FAST2SMS_API_KEY,
+            "Content-Type": "application/json"
+        }
+
+        payload = {
             "route": "otp",
             "variables_values": otp,
-            "numbers": phone,
-            "flash": "0"
+            "numbers": phone
         }
 
-        headers = {
-            "cache-control": "no-cache"
-        }
+        response = requests.post(url, json=payload, headers=headers)
 
-        response = requests.get(url, params=payload, headers=headers)
-
-        print("Fast2SMS response:", response.text)
+        print("FAST2SMS:", response.text)
 
         return response.status_code == 200
 
     except Exception as e:
-        print("SMS error:", str(e))
+        print("SMS ERROR:", str(e))
         return False
 
 # ======================
@@ -202,16 +201,16 @@ async def send_otp(request: SendOTPRequest):
         # send SMS
         send_sms(phone, otp)
 
-        return {
-            "success": True,
-            "message": "OTP sent successfully"
-        }
+  if not sms_sent:
+    return {
+        "success": False,
+        "detail": "SMS sending failed"
+    }
 
-    except Exception as e:
-        return {
-            "success": False,
-            "detail": str(e)
-        }
+return {
+    "success": True,
+    "message": "OTP sent successfully"
+}
 @app.post("/api/auth/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
     try:
