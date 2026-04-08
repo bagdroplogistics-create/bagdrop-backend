@@ -186,14 +186,11 @@ def health():
 # ======================
 @app.post("/api/auth/send-otp")
 async def send_otp(request: SendOTPRequest):
-    return {
-        "success": True
-    }
+    return {"success": True}
+    
 @app.post("/api/auth/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
-    return {
-        "success": True
-    }
+    return {"success": True}
 
 # ======================
 # Bookings
