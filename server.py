@@ -150,24 +150,26 @@ def send_sms(phone: str, otp: str) -> bool:
     try:
         url = "https://www.fast2sms.com/dev/bulkV2"
 
-        querystring = {
+        payload = {
             "authorization": FAST2SMS_API_KEY,
-            "variables_values": otp,
             "route": "otp",
+            "variables_values": otp,
             "numbers": phone,
+            "flash": "0"
         }
 
-        response = requests.get(url, params=querystring, timeout=10)
+        headers = {
+            "cache-control": "no-cache"
+        }
 
-        if response.status_code == 200:
-            print(f"✅ SMS sent to {phone}")
-            return True
-        else:
-            print("❌ Fast2SMS error:", response.text)
-            return False
+        response = requests.get(url, params=payload, headers=headers)
+
+        print("Fast2SMS response:", response.text)
+
+        return response.status_code == 200
 
     except Exception as e:
-        print("❌ SMS exception:", str(e))
+        print("SMS error:", str(e))
         return False
 
 # ======================
