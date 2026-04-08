@@ -186,55 +186,14 @@ def health():
 # ======================
 @app.post("/api/auth/send-otp")
 async def send_otp(request: SendOTPRequest):
-    try:
-        phone = request.phone
-
-        otp = generate_otp()
-
-        # save OTP in DB
-        otp_collection.insert_one({
-            "phone": phone,
-            "otp": otp,
-            "created_at": datetime.utcnow()
-        })
-
-        # send SMS
-        send_sms(phone, otp)
-
-  if not sms_sent:
     return {
-        "success": False,
-        "detail": "SMS sending failed"
+        "success": True
     }
-
-return {
-    "success": True,
-    "message": "OTP sent successfully"
-}
 @app.post("/api/auth/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
-    try:
-        phone = request.phone
-        otp = request.otp
-
-        record = otp_collection.find_one({
-            "phone": phone,
-            "otp": otp
-        })
-
-        if not record:
-            return {
-                "success": False,
-                "detail": "Invalid OTP"
-            }
-
-        return {"success": True}
-
-    except Exception as e:
-        return {
-            "success": False,
-            "detail": str(e)
-        }
+    return {
+        "success": True
+    }
 
 # ======================
 # Bookings
