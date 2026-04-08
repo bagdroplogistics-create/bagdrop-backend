@@ -28,11 +28,6 @@ app.add_middleware(
 MONGO_URL = os.getenv("MONGO_URL")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
-FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY")
-
-if not FAST2SMS_API_KEY:
-    raise Exception("❌ FAST2SMS_API_KEY not set")
-
 if not MONGO_URL:
     raise Exception("❌ MONGO_URL not set")
 
@@ -138,40 +133,7 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
     except Exception as e:
         print("❌ Email exception:", str(e))
         return False
-
-        # ======================
-# Health
-# ======================
-
-# ======================
-# SMS
-# ======================
-def send_sms(phone: str, otp: str) -> bool:
-    try:
-        url = "https://www.fast2sms.com/dev/bulkV2"
-
-        headers = {
-            "authorization": FAST2SMS_API_KEY,
-            "Content-Type": "application/json"
-        }
-
-        payload = {
-            "route": "otp",
-            "variables_values": otp,
-            "numbers": phone
-        }
-
-        response = requests.post(url, json=payload, headers=headers)
-
-        print("FAST2SMS:", response.text)
-
-        return response.status_code == 200
-
-    except Exception as e:
-        print("SMS ERROR:", str(e))
-        return False
-
-# ======================
+        
 # Health
 # ======================
 @app.get("/api/health")
