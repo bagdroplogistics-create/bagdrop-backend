@@ -28,6 +28,11 @@ app.add_middleware(
 MONGO_URL = os.getenv("MONGO_URL")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
+FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY")
+
+if not FAST2SMS_API_KEY:
+    raise Exception("❌ FAST2SMS_API_KEY not set")
+
 if not MONGO_URL:
     raise Exception("❌ MONGO_URL not set")
 
@@ -75,19 +80,24 @@ class VerifyOTPRequest(BaseModel):
 
 class BookingCreate(BaseModel):
     pickup_location: str = Field(..., min_length=1)
+    pickup_address: str = Field(..., min_length=1)
     drop_location: str = Field(..., min_length=1)
+    drop_address: str = Field(..., min_length=1)
     pickup_date: str
+    preferred_drop_date: str
     delivery_type: str = Field(default="bag")
     num_bags: int = Field(..., gt=0)
-    first_name: str
-    last_name: str
+    full_name: str = Field(..., min_length=1)
     email: EmailStr
     phone: str
 
 class BookingUpdate(BaseModel):
     pickup_location: Optional[str] = None
+    pickup_address: Optional[str] = None
     drop_location: Optional[str] = None
+    drop_address: Optional[str] = None
     pickup_date: Optional[str] = None
+    preferred_drop_date: Optional[str] = None
     num_bags: Optional[int] = None
 
 class TrackBooking(BaseModel):
@@ -133,7 +143,8 @@ def send_email(to_email: str, subject: str, html: str) -> bool:
     except Exception as e:
         print("❌ Email exception:", str(e))
         return False
-        
+
+# ======================
 # Health
 # ======================
 @app.get("/api/health")
@@ -180,7 +191,7 @@ def create_booking(booking: BookingCreate):
         <h2>Booking Confirmed</h2>
         <p>Your booking ID:</p>
         <h1>{booking_id}</h1>
-        <p>Thank you for choosing Bagdrop.</p>
+        <p>A new booking has been submitted through the Bagdrop app.</p>
         """
     )
 
@@ -198,7 +209,7 @@ def create_booking(booking: BookingCreate):
             <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
                 <h2 style="color: #FF6B35;">Booking Received! ✓</h2>
 
-                <p>Dear {booking_data['first_name']} {booking_data['last_name']},</p>
+                <p>Dear {booking_data['full_name']},</p>
 
                 <div style="background-color: white; padding: 20px; border-left: 4px solid #FF6B35; margin: 20px 0;">
                     <h3 style="margin-top: 0; color: #FF6B35;">Booking Reference</h3>
@@ -206,8 +217,11 @@ def create_booking(booking: BookingCreate):
                 </div>
 
                 <p><strong>Pickup:</strong> {booking_data['pickup_location']}</p>
+                <p><strong>Pickup Address:</strong> {booking_data['pickup_address']}</p>
                 <p><strong>Drop:</strong> {booking_data['drop_location']}</p>
+                <p><strong>Drop Address:</strong> {booking_data['drop_address']}</p>
                 <p><strong>Date:</strong> {booking_data['pickup_date']}</p>
+                <p><strong>Preferred Drop Date:</strong> {booking_data['preferred_drop_date']}</p>
                 <p><strong>Bags:</strong> {booking_data['num_bags']}</p>
                 <p><strong>Phone:</strong> {booking_data['phone']}</p>
                 <p><strong>Email:</strong> {booking_data['email']}</p>
